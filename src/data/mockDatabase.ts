@@ -20,6 +20,7 @@ export const mockIdentityDatabase: IdentityRecord[] = [
     },
     faceEmbedding: generateMockEmbedding(),
     source: 'FBI Database',
+    database: 'Mock Database',
     lastUpdated: new Date('2024-01-15'),
     metadata: {
       height: '6ft 1in',
@@ -39,6 +40,7 @@ export const mockIdentityDatabase: IdentityRecord[] = [
     },
     faceEmbedding: generateMockEmbedding(),
     source: 'LAPD Records',
+    database: 'Mock Database',
     lastUpdated: new Date('2024-02-20'),
     metadata: {
       height: '5ft 6in',
@@ -58,6 +60,7 @@ export const mockIdentityDatabase: IdentityRecord[] = [
     },
     faceEmbedding: generateMockEmbedding(),
     source: 'DMV Records',
+    database: 'Mock Database',
     lastUpdated: new Date('2024-03-10'),
   },
   {
@@ -72,6 +75,7 @@ export const mockIdentityDatabase: IdentityRecord[] = [
     },
     faceEmbedding: generateMockEmbedding(),
     source: 'Border Control',
+    database: 'Mock Database',
     lastUpdated: new Date('2024-01-28'),
   },
   {
@@ -86,6 +90,7 @@ export const mockIdentityDatabase: IdentityRecord[] = [
     },
     faceEmbedding: generateMockEmbedding(),
     source: 'State Police',
+    database: 'Mock Database',
     lastUpdated: new Date('2024-02-14'),
   },
   {
@@ -100,6 +105,7 @@ export const mockIdentityDatabase: IdentityRecord[] = [
     },
     faceEmbedding: generateMockEmbedding(),
     source: 'University Database',
+    database: 'Mock Database',
     lastUpdated: new Date('2024-03-05'),
   },
   {
@@ -114,6 +120,7 @@ export const mockIdentityDatabase: IdentityRecord[] = [
     },
     faceEmbedding: generateMockEmbedding(),
     source: 'Corporate Security',
+    database: 'Mock Database',
     lastUpdated: new Date('2024-01-30'),
   },
   {
@@ -128,6 +135,7 @@ export const mockIdentityDatabase: IdentityRecord[] = [
     },
     faceEmbedding: generateMockEmbedding(),
     source: 'Medical Records',
+    database: 'Mock Database',
     lastUpdated: new Date('2024-02-25'),
   },
   {
@@ -142,6 +150,7 @@ export const mockIdentityDatabase: IdentityRecord[] = [
     },
     faceEmbedding: generateMockEmbedding(),
     source: 'Government Registry',
+    database: 'Mock Database',
     lastUpdated: new Date('2024-03-12'),
   },
   {
@@ -156,6 +165,7 @@ export const mockIdentityDatabase: IdentityRecord[] = [
     },
     faceEmbedding: generateMockEmbedding(),
     source: 'Social Media Analysis',
+    database: 'Mock Database',
     lastUpdated: new Date('2024-02-18'),
   },
   // Add more mock records for realistic testing
@@ -171,6 +181,7 @@ export const mockIdentityDatabase: IdentityRecord[] = [
     },
     faceEmbedding: generateMockEmbedding(),
     source: ['Police Database', 'DMV Records', 'Airport Security', 'Border Control', 'Court Records'][i % 5],
+    database: 'Mock Database',
     lastUpdated: new Date(2024, Math.floor(Math.random() * 3), Math.floor(Math.random() * 28) + 1),
   })),
 ];
