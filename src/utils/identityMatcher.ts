@@ -1,5 +1,5 @@
-
 import { IdentityRecord, SearchParams, MatchResult, ConfidenceWeights } from '@/types/divyadrishti';
+import { governmentDatabases, getAllDatabases } from '@/data/governmentDatabases';
 
 // Simulated face embedding comparison (replaces actual FaceNet/FAISS)
 const simulateFaceEmbeddingMatch = (searchEmbedding: number[], recordEmbedding: number[]): number => {
@@ -139,12 +139,31 @@ const calculateLocationSimilarity = (searchLocation: any, recordLocation: any): 
   return weightSum > 0 ? score / weightSum : 0;
 };
 
-// Main identity search function
+// Main identity search function with multi-database support
 export const performIdentitySearch = async (
   searchParams: SearchParams,
-  database: IdentityRecord[]
+  specificDatabase?: IdentityRecord[]
 ): Promise<MatchResult[]> => {
   const results: MatchResult[] = [];
+  
+  // Determine which databases to search
+  let databasesToSearch: IdentityRecord[];
+  
+  if (specificDatabase) {
+    // Use provided database (for backward compatibility)
+    databasesToSearch = specificDatabase;
+  } else if (searchParams.selectedDatabases && searchParams.selectedDatabases.length > 0) {
+    // Search only selected databases
+    databasesToSearch = [];
+    searchParams.selectedDatabases.forEach(dbName => {
+      if (governmentDatabases[dbName as keyof typeof governmentDatabases]) {
+        databasesToSearch = databasesToSearch.concat(governmentDatabases[dbName as keyof typeof governmentDatabases]);
+      }
+    });
+  } else {
+    // Search all databases
+    databasesToSearch = getAllDatabases();
+  }
   
   // Default confidence weights
   const weights: ConfidenceWeights = {
@@ -161,7 +180,7 @@ export const performIdentitySearch = async (
     searchFaceEmbedding = await generateFaceEmbedding(searchParams.faceImage);
   }
   
-  for (const record of database) {
+  for (const record of databasesToSearch) {
     const matchBreakdown: any = {};
     const matchedFields: string[] = [];
     let totalScore = 0;

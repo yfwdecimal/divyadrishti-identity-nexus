@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { Upload, Search, User, Mail, Phone, MapPin } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Upload, Search, User, Mail, Phone, MapPin, Database } from 'lucide-react';
 import { SearchParams } from '@/types/divyadrishti';
 
 interface SearchPanelProps {
@@ -23,11 +24,30 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({ onSearch, isSearching 
   const [state, setState] = useState('');
   const [country, setCountry] = useState('');
   const [confidenceThreshold, setConfidenceThreshold] = useState([0.7]);
+  const [selectedDatabases, setSelectedDatabases] = useState<string[]>([
+    'Indian Government',
+    'US Government',
+    'UK Government'
+  ]);
+
+  const availableDatabases = [
+    'Indian Government',
+    'US Government', 
+    'UK Government'
+  ];
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type.startsWith('image/')) {
       setFaceImage(file);
+    }
+  };
+
+  const handleDatabaseToggle = (database: string, checked: boolean) => {
+    if (checked) {
+      setSelectedDatabases(prev => [...prev, database]);
+    } else {
+      setSelectedDatabases(prev => prev.filter(db => db !== database));
     }
   };
 
@@ -43,6 +63,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({ onSearch, isSearching 
         country: country || undefined,
       },
       confidenceThreshold: confidenceThreshold[0],
+      selectedDatabases: selectedDatabases.length > 0 ? selectedDatabases : undefined,
     };
 
     // Only include location if at least one field is filled
@@ -64,6 +85,27 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({ onSearch, isSearching 
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <Label className="text-slate-300 flex items-center gap-2">
+            <Database className="w-4 h-4" />
+            Government Databases
+          </Label>
+          <div className="space-y-2">
+            {availableDatabases.map(database => (
+              <div key={database} className="flex items-center space-x-2">
+                <Checkbox
+                  id={database}
+                  checked={selectedDatabases.includes(database)}
+                  onCheckedChange={(checked) => handleDatabaseToggle(database, checked as boolean)}
+                />
+                <Label htmlFor={database} className="text-slate-300 text-sm">
+                  {database}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <Tabs defaultValue="face" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-slate-700">
             <TabsTrigger value="face" className="data-[state=active]:bg-blue-600">Face</TabsTrigger>
@@ -179,7 +221,7 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({ onSearch, isSearching 
 
         <Button
           onClick={handleSearch}
-          disabled={!hasSearchCriteria || isSearching}
+          disabled={!hasSearchCriteria || isSearching || selectedDatabases.length === 0}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600"
         >
           {isSearching ? (

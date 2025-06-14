@@ -12,6 +12,7 @@ export interface IdentityRecord {
   faceImageUrl?: string;
   faceEmbedding?: number[]; // Simulated face embedding vector
   source: string;
+  database: string; // New field to identify which database
   metadata?: Record<string, any>;
   lastUpdated: Date;
 }
@@ -27,6 +28,7 @@ export interface SearchParams {
     country?: string;
   };
   confidenceThreshold?: number;
+  selectedDatabases?: string[]; // New field for database selection
 }
 
 export interface MatchResult {
@@ -49,4 +51,23 @@ export interface ConfidenceWeights {
   email: number;
   phone: number;
   location: number;
+}
+
+export interface QAReport {
+  id: string;
+  searchParams: SearchParams;
+  totalMatches: number;
+  matchesByDatabase: Record<string, number>;
+  highConfidenceMatches: number;
+  crossDatabaseMatches: CrossDatabaseMatch[];
+  generatedAt: Date;
+  summary: string;
+  recommendations: string[];
+}
+
+export interface CrossDatabaseMatch {
+  primaryRecord: IdentityRecord;
+  relatedRecords: IdentityRecord[];
+  confidence: number;
+  discrepancies: string[];
 }
