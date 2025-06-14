@@ -20,7 +20,7 @@ export const DivyadrishtiDashboard = () => {
     // Simulate processing time
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    const results = performIdentitySearch(params, mockIdentityDatabase);
+    const results = await performIdentitySearch(params, mockIdentityDatabase);
     setSearchResults(results);
     setIsSearching(false);
   };
