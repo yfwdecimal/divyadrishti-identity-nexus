@@ -1,4 +1,3 @@
-
 export interface IdentityRecord {
   id: string;
   name?: string;
@@ -29,6 +28,8 @@ export interface SearchParams {
   };
   confidenceThreshold?: number;
   selectedDatabases?: string[]; // New field for database selection
+  includePartialMatches?: boolean;
+  query?: string;
 }
 
 export interface MatchResult {

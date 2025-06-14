@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -74,11 +73,11 @@ export function DivyadrishtiDashboard() {
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-3">
-            <Eye className="h-12 w-12 text-purple-400 glow-accent" />
+            <Eye className="h-12 w-12 text-purple-400" />
             <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
               Divyadrishti
             </h1>
-            <Shield className="h-12 w-12 text-cyan-400 glow-accent" />
+            <Shield className="h-12 w-12 text-cyan-400" />
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Advanced Identity Intelligence System with Multi-Database Cross-Verification
@@ -98,7 +97,7 @@ export function DivyadrishtiDashboard() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat) => (
-            <Card key={stat.title} className="transition-all duration-300 hover:glow-purple">
+            <Card key={stat.title} className="hover:border-purple-500/30">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -108,7 +107,7 @@ export function DivyadrishtiDashboard() {
                       {stat.change} from last month
                     </p>
                   </div>
-                  <div className={`p-3 rounded-full bg-gradient-to-r ${stat.gradient} glow-accent`}>
+                  <div className={`p-3 rounded-full bg-gradient-to-r ${stat.gradient}`}>
                     <stat.icon className="h-6 w-6 text-white" />
                   </div>
                 </div>
@@ -118,7 +117,7 @@ export function DivyadrishtiDashboard() {
         </div>
 
         {/* Search Panel */}
-        <Card className="glow-purple">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Search className="h-6 w-6 text-purple-400" />
@@ -152,7 +151,7 @@ export function DivyadrishtiDashboard() {
         {searchResults.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Search Results */}
-            <Card className="glow-purple">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Database className="h-6 w-6 text-cyan-400" />
@@ -163,14 +162,14 @@ export function DivyadrishtiDashboard() {
                 <ResultsDisplay 
                   results={searchResults} 
                   isSearching={isSearching}
-                  searchParams={currentSearchParams || { includePartialMatches: false, confidenceThreshold: 0.8 }}
+                  searchParams={currentSearchParams}
                 />
               </CardContent>
             </Card>
 
             {/* QA Report */}
             {qaReport && (
-              <Card className="glow-accent">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-6 w-6 text-green-400" />
