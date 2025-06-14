@@ -15,9 +15,6 @@ interface SearchPanelProps {
 
 interface ExtendedSearchParams extends SearchParams {
   databases: string[];
-  includePartialMatches: boolean;
-  confidenceThreshold: number;
-  query?: string;
 }
 
 export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
@@ -56,7 +53,11 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim() && searchParams.databases.length > 0) {
-      onSearch({ ...searchParams, query } as SearchParams);
+      onSearch({ 
+        ...searchParams, 
+        query,
+        selectedDatabases: searchParams.databases
+      } as SearchParams);
     }
   };
 
@@ -100,7 +101,7 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
               key={db.id} 
               className={`cursor-pointer transition-all duration-200 ${
                 searchParams.databases.includes(db.id) 
-                  ? 'glass-card glow-accent border-purple-500/50' 
+                  ? 'glass-card border-purple-500/50' 
                   : 'glass-dark border-white/10'
               }`}
               onClick={() => toggleDatabase(db.id)}
@@ -129,7 +130,7 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="confidence" className="text-sm font-medium text-purple-300">
-            Confidence Threshold: {(searchParams.confidenceThreshold * 100).toFixed(0)}%
+            Confidence Threshold: {(searchParams.confidenceThreshold! * 100).toFixed(0)}%
           </Label>
           <input
             id="confidence"

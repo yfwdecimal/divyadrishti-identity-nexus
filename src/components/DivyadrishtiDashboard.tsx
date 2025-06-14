@@ -1,13 +1,19 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SearchPanel } from './SearchPanel';
 import { ResultsDisplay } from './ResultsDisplay';
 import { QAReportDisplay } from './QAReportDisplay';
+import { AnalyticsDashboard } from './AnalyticsDashboard';
+import { RealTimeMonitor } from './RealTimeMonitor';
+import { FacialRecognitionUpload } from './FacialRecognitionUpload';
+import { ExportReports } from './ExportReports';
 import { performIdentitySearch } from '@/utils/identityMatcher';
 import { generateQAReport } from '@/utils/qaReportGenerator';
-import { Eye, Shield, Search, Database, FileText, Zap, Users, AlertTriangle } from 'lucide-react';
+import { Eye, Shield, Search, Database, FileText, Zap, Users, AlertTriangle, Activity, BarChart3, Camera, Download } from 'lucide-react';
 import type { SearchParams, QAReport } from '@/types/divyadrishti';
 
 export function DivyadrishtiDashboard() {
@@ -34,6 +40,11 @@ export function DivyadrishtiDashboard() {
     } finally {
       setIsSearching(false);
     }
+  };
+
+  const handleImageUpload = (file: File) => {
+    console.log('Image uploaded for facial recognition:', file.name);
+    // This would integrate with the search functionality
   };
 
   const stats = [
@@ -91,6 +102,10 @@ export function DivyadrishtiDashboard() {
               <Users className="h-3 w-3 mr-1" />
               Multi-Agency Access
             </Badge>
+            <Badge variant="outline" className="border-green-500/30 text-green-300">
+              <Activity className="h-3 w-3 mr-1" />
+              Real-Time Monitoring
+            </Badge>
           </div>
         </div>
 
@@ -116,81 +131,130 @@ export function DivyadrishtiDashboard() {
           ))}
         </div>
 
-        {/* Search Panel */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Search className="h-6 w-6 text-purple-400" />
-              Identity Search & Analysis
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SearchPanel onSearch={handleSearch} isLoading={isSearching} />
-          </CardContent>
-        </Card>
+        {/* Main Tabs Interface */}
+        <Tabs defaultValue="search" className="w-full">
+          <TabsList className="grid w-full grid-cols-5 bg-slate-800/50">
+            <TabsTrigger value="search" className="flex items-center gap-2">
+              <Search className="h-4 w-4" />
+              Search
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="monitor" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Monitor
+            </TabsTrigger>
+            <TabsTrigger value="facial" className="flex items-center gap-2">
+              <Camera className="h-4 w-4" />
+              Facial
+            </TabsTrigger>
+            <TabsTrigger value="export" className="flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Export
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Search Progress */}
-        {isSearching && (
-          <Card className="glass-card">
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-purple-500 border-t-transparent"></div>
-                  <span className="text-lg font-medium text-purple-300">Processing Multi-Database Search...</span>
-                </div>
-                <Progress value={75} className="h-2" />
-                <p className="text-sm text-muted-foreground">
-                  Scanning across Indian Government, US Federal, and UK Government databases...
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Results Section */}
-        {searchResults.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Search Results */}
+          {/* Search Tab */}
+          <TabsContent value="search" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Database className="h-6 w-6 text-cyan-400" />
-                  Search Results ({searchResults.length} matches found)
+                  <Search className="h-6 w-6 text-purple-400" />
+                  Identity Search & Analysis
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResultsDisplay 
-                  results={searchResults} 
-                  isSearching={isSearching}
-                  searchParams={currentSearchParams}
-                />
+                <SearchPanel onSearch={handleSearch} isLoading={isSearching} />
               </CardContent>
             </Card>
 
-            {/* QA Report */}
-            {qaReport && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-6 w-6 text-green-400" />
-                    Quality Assurance Report
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <QAReportDisplay report={qaReport} />
+            {/* Search Progress */}
+            {isSearching && (
+              <Card className="glass-card">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="animate-spin rounded-full h-6 w-6 border-2 border-purple-500 border-t-transparent"></div>
+                      <span className="text-lg font-medium text-purple-300">Processing Multi-Database Search...</span>
+                    </div>
+                    <Progress value={75} className="h-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Scanning across Indian Government, US Federal, and UK Government databases...
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             )}
-          </div>
-        )}
+
+            {/* Results Section */}
+            {searchResults.length > 0 && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Database className="h-6 w-6 text-cyan-400" />
+                      Search Results ({searchResults.length} matches found)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResultsDisplay 
+                      results={searchResults} 
+                      isSearching={isSearching}
+                      searchParams={currentSearchParams}
+                    />
+                  </CardContent>
+                </Card>
+
+                {qaReport && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-6 w-6 text-green-400" />
+                        Quality Assurance Report
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <QAReportDisplay report={qaReport} />
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics">
+            <AnalyticsDashboard />
+          </TabsContent>
+
+          {/* Real-Time Monitor Tab */}
+          <TabsContent value="monitor">
+            <RealTimeMonitor />
+          </TabsContent>
+
+          {/* Facial Recognition Tab */}
+          <TabsContent value="facial">
+            <FacialRecognitionUpload onImageUpload={handleImageUpload} />
+          </TabsContent>
+
+          {/* Export & Reports Tab */}
+          <TabsContent value="export">
+            <ExportReports searchResults={searchResults} />
+          </TabsContent>
+        </Tabs>
 
         {/* System Status */}
         <Card className="glass-dark">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="h-3 w-3 bg-green-400 rounded-full"></div>
+                <div className="h-3 w-3 bg-green-400 rounded-full animate-pulse"></div>
                 <span className="text-sm text-muted-foreground">All systems operational</span>
+                <Badge variant="outline" className="text-xs">
+                  {searchResults.length} active results
+                </Badge>
               </div>
               <div className="text-xs text-muted-foreground">
                 Last updated: {new Date().toLocaleTimeString()}
