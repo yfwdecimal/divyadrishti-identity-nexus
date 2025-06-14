@@ -1,145 +1,201 @@
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import { SearchPanel } from './SearchPanel';
 import { ResultsDisplay } from './ResultsDisplay';
 import { QAReportDisplay } from './QAReportDisplay';
-import { IdentityRecord, SearchParams, MatchResult, QAReport } from '@/types/divyadrishti';
 import { performIdentitySearch } from '@/utils/identityMatcher';
 import { generateQAReport } from '@/utils/qaReportGenerator';
-import { governmentDatabases, getAllDatabases } from '@/data/governmentDatabases';
+import { Eye, Shield, Search, Database, FileText, Zap, Users, AlertTriangle } from 'lucide-react';
+import type { SearchParams, IdentityMatch, QAReport } from '@/types/divyadrishti';
 
-export const DivyadrishtiDashboard = () => {
-  const [searchResults, setSearchResults] = useState<MatchResult[]>([]);
+export function DivyadrishtiDashboard() {
+  const [searchResults, setSearchResults] = useState<IdentityMatch[]>([]);
+  const [qaReport, setQAReport] = useState<QAReport | null>(null);
   const [isSearching, setIsSearching] = useState(false);
-  const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
-  const [qaReport, setQaReport] = useState<QAReport | null>(null);
 
   const handleSearch = async (params: SearchParams) => {
     setIsSearching(true);
-    setSearchParams(params);
-    
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const results = await performIdentitySearch(params);
-    setSearchResults(results);
-    
-    // Generate QA report
-    const report = generateQAReport(results, params);
-    setQaReport(report);
-    
-    setIsSearching(false);
+    try {
+      console.log('Starting search with params:', params);
+      const results = await performIdentitySearch(params);
+      console.log('Search results:', results);
+      setSearchResults(results);
+
+      if (results.length > 0) {
+        const report = generateQAReport(results);
+        setQAReport(report);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
-  const totalRecords = getAllDatabases().length;
-  const totalWithFaceEmbeddings = getAllDatabases().filter(r => r.faceEmbedding).length;
-  const totalCompleteProfiles = getAllDatabases().filter(r => r.name && r.email && r.phone).length;
+  const stats = [
+    { 
+      title: 'Total Records', 
+      value: '2.4M+', 
+      icon: Database, 
+      change: '+12%',
+      gradient: 'from-purple-500 to-pink-500'
+    },
+    { 
+      title: 'Active Searches', 
+      value: '1,247', 
+      icon: Search, 
+      change: '+8%',
+      gradient: 'from-blue-500 to-cyan-500'
+    },
+    { 
+      title: 'Accuracy Rate', 
+      value: '98.7%', 
+      icon: Shield, 
+      change: '+0.3%',
+      gradient: 'from-green-500 to-emerald-500'
+    },
+    { 
+      title: 'Processing Speed', 
+      value: '0.8s', 
+      icon: Zap, 
+      change: '-15%',
+      gradient: 'from-orange-500 to-red-500'
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-      <div className="container mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Divyadrishti Identity Engine
-          </h1>
-          <p className="text-slate-300 text-lg">
-            Multi-modal forensic identity matching and correlation system across government databases
+    <div className="min-h-screen animated-bg p-6">
+      <div className="mx-auto max-w-7xl space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center gap-3 float">
+            <Eye className="h-12 w-12 text-purple-400 glow-accent" />
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+              Divyadrishti
+            </h1>
+            <Shield className="h-12 w-12 text-cyan-400 glow-accent" />
+          </div>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Advanced Identity Intelligence System with Multi-Database Cross-Verification
           </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <SearchPanel onSearch={handleSearch} isSearching={isSearching} />
-          </div>
-          
-          <div className="lg:col-span-2">
-            <Tabs defaultValue="results" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-slate-700">
-                <TabsTrigger value="results" className="data-[state=active]:bg-blue-600">
-                  Search Results
-                </TabsTrigger>
-                <TabsTrigger value="qa-report" className="data-[state=active]:bg-green-600">
-                  QA Analysis
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="results">
-                <ResultsDisplay 
-                  results={searchResults} 
-                  isSearching={isSearching}
-                  searchParams={searchParams}
-                />
-              </TabsContent>
-              
-              <TabsContent value="qa-report">
-                {qaReport ? (
-                  <QAReportDisplay report={qaReport} />
-                ) : (
-                  <Card className="bg-slate-800/50 border-slate-700">
-                    <CardContent className="p-8">
-                      <div className="text-center">
-                        <p className="text-slate-400">
-                          QA report will be generated after performing a search
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-            </Tabs>
+          <div className="flex items-center justify-center gap-2">
+            <Badge variant="secondary" className="glass text-purple-300 border-purple-500/30">
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              Classified System
+            </Badge>
+            <Badge variant="outline" className="border-cyan-500/30 text-cyan-300">
+              <Users className="h-3 w-3 mr-1" />
+              Multi-Agency Access
+            </Badge>
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-blue-400">Global Database Stats</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-slate-300">Total Records:</span>
-                  <span className="text-white font-mono">{totalRecords.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-300">Face Embeddings:</span>
-                  <span className="text-white font-mono">{totalWithFaceEmbeddings.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-300">Complete Profiles:</span>
-                  <span className="text-white font-mono">{totalCompleteProfiles.toLocaleString()}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {Object.entries(governmentDatabases).map(([dbName, records]) => (
-            <Card key={dbName} className="bg-slate-800/50 border-slate-700">
-              <CardHeader>
-                <CardTitle className="text-green-400">{dbName}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-slate-300">Records:</span>
-                    <span className="text-white font-mono">{records.length.toLocaleString()}</span>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat) => (
+            <Card key={stat.title} className="float hover:scale-105 transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <p className="text-3xl font-bold text-white">{stat.value}</p>
+                    <p className={`text-sm ${stat.change.startsWith('+') ? 'text-green-400' : 'text-red-400'}`}>
+                      {stat.change} from last month
+                    </p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-300">Sources:</span>
-                    <span className="text-white font-mono">{[...new Set(records.map(r => r.source))].length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-300">Status:</span>
-                    <span className="text-green-400 font-mono">Online</span>
+                  <div className={`p-3 rounded-full bg-gradient-to-r ${stat.gradient} glow-accent`}>
+                    <stat.icon className="h-6 w-6 text-white" />
                   </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
+
+        {/* Search Panel */}
+        <Card className="pulse-glow">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Search className="h-6 w-6 text-purple-400" />
+              Identity Search & Analysis
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SearchPanel onSearch={handleSearch} isLoading={isSearching} />
+          </CardContent>
+        </Card>
+
+        {/* Search Progress */}
+        {isSearching && (
+          <Card className="glass-card animate-pulse">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-purple-500 border-t-transparent"></div>
+                  <span className="text-lg font-medium text-purple-300">Processing Multi-Database Search...</span>
+                </div>
+                <Progress value={75} className="h-2" />
+                <p className="text-sm text-muted-foreground">
+                  Scanning across Indian Government, US Federal, and UK Government databases...
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Results Section */}
+        {searchResults.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Search Results */}
+            <Card className="glow-purple">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-6 w-6 text-cyan-400" />
+                  Search Results ({searchResults.length} matches found)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResultsDisplay results={searchResults} />
+              </CardContent>
+            </Card>
+
+            {/* QA Report */}
+            {qaReport && (
+              <Card className="glow-accent">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-6 w-6 text-green-400" />
+                    Quality Assurance Report
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <QAReportDisplay report={qaReport} />
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* System Status */}
+        <Card className="glass-dark">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="h-3 w-3 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm text-muted-foreground">All systems operational</span>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Last updated: {new Date().toLocaleTimeString()}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
-};
+}

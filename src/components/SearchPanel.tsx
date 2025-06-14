@@ -1,242 +1,209 @@
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Upload, Search, User, Mail, Phone, MapPin, Database } from 'lucide-react';
-import { SearchParams } from '@/types/divyadrishti';
+import { Card, CardContent } from '@/components/ui/card';
+import { Upload, Search, Database, Users, Globe } from 'lucide-react';
+import type { SearchParams } from '@/types/divyadrishti';
 
 interface SearchPanelProps {
   onSearch: (params: SearchParams) => void;
-  isSearching: boolean;
+  isLoading: boolean;
 }
 
-export const SearchPanel: React.FC<SearchPanelProps> = ({ onSearch, isSearching }) => {
-  const [faceImage, setFaceImage] = useState<File | null>(null);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [country, setCountry] = useState('');
-  const [confidenceThreshold, setConfidenceThreshold] = useState([0.7]);
-  const [selectedDatabases, setSelectedDatabases] = useState<string[]>([
-    'Indian Government',
-    'US Government',
-    'UK Government'
-  ]);
+export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
+  const [searchParams, setSearchParams] = useState<SearchParams>({
+    query: '',
+    databases: ['indian_government'],
+    includePartialMatches: true,
+    confidenceThreshold: 0.8
+  });
 
-  const availableDatabases = [
-    'Indian Government',
-    'US Government', 
-    'UK Government'
+  const databases = [
+    { 
+      id: 'indian_government', 
+      name: 'Indian Government', 
+      icon: Users,
+      description: 'Aadhaar, PAN, Voter ID, Passport records',
+      color: 'text-orange-400'
+    },
+    { 
+      id: 'us_federal', 
+      name: 'US Federal', 
+      icon: Globe,
+      description: 'FBI, DHS, SSA databases',
+      color: 'text-blue-400'
+    },
+    { 
+      id: 'uk_government', 
+      name: 'UK Government', 
+      icon: Database,
+      description: 'HMRC, DVLA, Home Office records',
+      color: 'text-green-400'
+    },
   ];
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setFaceImage(file);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchParams.query.trim() && searchParams.databases.length > 0) {
+      onSearch(searchParams);
     }
   };
 
-  const handleDatabaseToggle = (database: string, checked: boolean) => {
-    if (checked) {
-      setSelectedDatabases(prev => [...prev, database]);
-    } else {
-      setSelectedDatabases(prev => prev.filter(db => db !== database));
-    }
+  const toggleDatabase = (databaseId: string) => {
+    setSearchParams(prev => ({
+      ...prev,
+      databases: prev.databases.includes(databaseId)
+        ? prev.databases.filter(id => id !== databaseId)
+        : [...prev.databases, databaseId]
+    }));
   };
-
-  const handleSearch = () => {
-    const searchParams: SearchParams = {
-      faceImage: faceImage || undefined,
-      name: name || undefined,
-      email: email || undefined,
-      phone: phone || undefined,
-      location: {
-        city: city || undefined,
-        state: state || undefined,
-        country: country || undefined,
-      },
-      confidenceThreshold: confidenceThreshold[0],
-      selectedDatabases: selectedDatabases.length > 0 ? selectedDatabases : undefined,
-    };
-
-    // Only include location if at least one field is filled
-    if (!city && !state && !country) {
-      delete searchParams.location;
-    }
-
-    onSearch(searchParams);
-  };
-
-  const hasSearchCriteria = faceImage || name || email || phone || city || state || country;
 
   return (
-    <Card className="bg-slate-800/50 border-slate-700">
-      <CardHeader>
-        <CardTitle className="text-blue-400 flex items-center gap-2">
-          <Search className="w-5 h-5" />
-          Multi-Modal Search
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <Label className="text-slate-300 flex items-center gap-2">
-            <Database className="w-4 h-4" />
-            Government Databases
-          </Label>
-          <div className="space-y-2">
-            {availableDatabases.map(database => (
-              <div key={database} className="flex items-center space-x-2">
-                <Checkbox
-                  id={database}
-                  checked={selectedDatabases.includes(database)}
-                  onCheckedChange={(checked) => handleDatabaseToggle(database, checked as boolean)}
-                />
-                <Label htmlFor={database} className="text-slate-300 text-sm">
-                  {database}
-                </Label>
-              </div>
-            ))}
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Search Input */}
+      <div className="space-y-2">
+        <Label htmlFor="search-query" className="text-sm font-medium text-purple-300">
+          Search Query
+        </Label>
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="search-query"
+            type="text"
+            placeholder="Enter name, ID number, or other identifier..."
+            value={searchParams.query}
+            onChange={(e) => setSearchParams(prev => ({ ...prev, query: e.target.value }))}
+            className="pl-10 glass border-purple-500/30 focus:border-purple-400 focus:ring-purple-400/20"
+          />
         </div>
+      </div>
 
-        <Tabs defaultValue="face" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-slate-700">
-            <TabsTrigger value="face" className="data-[state=active]:bg-blue-600">Face</TabsTrigger>
-            <TabsTrigger value="text" className="data-[state=active]:bg-blue-600">Text Data</TabsTrigger>
-          </TabsList>
+      {/* Database Selection */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium text-purple-300">
+          Target Databases
+        </Label>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {databases.map((db) => (
+            <Card 
+              key={db.id} 
+              className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
+                searchParams.databases.includes(db.id) 
+                  ? 'glass-card glow-accent border-purple-500/50' 
+                  : 'glass-dark border-white/10'
+              }`}
+              onClick={() => toggleDatabase(db.id)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    checked={searchParams.databases.includes(db.id)}
+                    onChange={() => toggleDatabase(db.id)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <db.icon className={`h-4 w-4 ${db.color}`} />
+                      <span className="font-medium text-white">{db.name}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{db.description}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
 
-          <TabsContent value="face" className="space-y-4">
-            <div>
-              <Label className="text-slate-300 mb-2 block">Upload Face Image</Label>
-              <div className="border-2 border-dashed border-slate-600 rounded-lg p-6 text-center hover:border-slate-500 transition-colors">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  id="face-upload"
-                />
-                <label htmlFor="face-upload" className="cursor-pointer">
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-slate-400" />
-                  <p className="text-slate-400">
-                    {faceImage ? faceImage.name : 'Click to upload or drag and drop'}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    PNG, JPG, JPEG up to 10MB
-                  </p>
-                </label>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="text" className="space-y-4">
-            <div className="space-y-4">
-              <div>
-                <Label className="text-slate-300 flex items-center gap-2 mb-2">
-                  <User className="w-4 h-4" />
-                  Name
-                </Label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter full or partial name"
-                  className="bg-slate-700 border-slate-600 text-white"
-                />
-              </div>
-
-              <div>
-                <Label className="text-slate-300 flex items-center gap-2 mb-2">
-                  <Mail className="w-4 h-4" />
-                  Email
-                </Label>
-                <Input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter email address"
-                  className="bg-slate-700 border-slate-600 text-white"
-                />
-              </div>
-
-              <div>
-                <Label className="text-slate-300 flex items-center gap-2 mb-2">
-                  <Phone className="w-4 h-4" />
-                  Phone
-                </Label>
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Enter phone number"
-                  className="bg-slate-700 border-slate-600 text-white"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-slate-300 flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  Location
-                </Label>
-                <Input
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="City"
-                  className="bg-slate-700 border-slate-600 text-white"
-                />
-                <Input
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                  placeholder="State/Province"
-                  className="bg-slate-700 border-slate-600 text-white"
-                />
-                <Input
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  placeholder="Country"
-                  className="bg-slate-700 border-slate-600 text-white"
-                />
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-
+      {/* Search Options */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label className="text-slate-300">
-            Confidence Threshold: {Math.round(confidenceThreshold[0] * 100)}%
+          <Label htmlFor="confidence" className="text-sm font-medium text-purple-300">
+            Confidence Threshold: {(searchParams.confidenceThreshold * 100).toFixed(0)}%
           </Label>
-          <Slider
-            value={confidenceThreshold}
-            onValueChange={setConfidenceThreshold}
-            max={1}
-            min={0.1}
-            step={0.05}
-            className="w-full"
+          <input
+            id="confidence"
+            type="range"
+            min="0.5"
+            max="1"
+            step="0.05"
+            value={searchParams.confidenceThreshold}
+            onChange={(e) => setSearchParams(prev => ({ 
+              ...prev, 
+              confidenceThreshold: parseFloat(e.target.value) 
+            }))}
+            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
           />
         </div>
 
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="partial-matches"
+            checked={searchParams.includePartialMatches}
+            onCheckedChange={(checked) => 
+              setSearchParams(prev => ({ ...prev, includePartialMatches: !!checked }))
+            }
+          />
+          <Label htmlFor="partial-matches" className="text-sm text-purple-300">
+            Include partial matches
+          </Label>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-4">
         <Button
-          onClick={handleSearch}
-          disabled={!hasSearchCriteria || isSearching || selectedDatabases.length === 0}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600"
+          type="submit"
+          disabled={isLoading || !searchParams.query.trim() || searchParams.databases.length === 0}
+          className="flex-1"
         >
-          {isSearching ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          {isLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
               Searching...
-            </div>
+            </>
           ) : (
-            <div className="flex items-center gap-2">
-              <Search className="w-4 h-4" />
-              Search Identity Database
-            </div>
+            <>
+              <Search className="h-4 w-4 mr-2" />
+              Execute Search
+            </>
           )}
         </Button>
-      </CardContent>
-    </Card>
+        
+        <Button
+          type="button"
+          variant="outline"
+          className="px-6"
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Upload Image
+        </Button>
+      </div>
+
+      <style jsx>{`
+        .slider::-webkit-slider-thumb {
+          appearance: none;
+          height: 20px;
+          width: 20px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #8b5cf6, #ec4899);
+          cursor: pointer;
+          box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        }
+
+        .slider::-moz-range-thumb {
+          height: 20px;
+          width: 20px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #8b5cf6, #ec4899);
+          cursor: pointer;
+          border: none;
+          box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        }
+      `}</style>
+    </form>
   );
-};
+}
