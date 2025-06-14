@@ -11,13 +11,16 @@ import { AnalyticsDashboard } from './AnalyticsDashboard';
 import { RealTimeMonitor } from './RealTimeMonitor';
 import { FacialRecognitionUpload } from './FacialRecognitionUpload';
 import { ExportReports } from './ExportReports';
-import { performIdentitySearch } from '@/utils/identityMatcher';
+import { DatabaseImport } from './DatabaseImport';
+import { UnifiedReportGenerator } from './UnifiedReportGenerator';
+import { performCrossDatabaseSearch, CrossDatabaseResult } from '@/utils/crossDatabaseSearchEngine';
 import { generateQAReport } from '@/utils/qaReportGenerator';
-import { Eye, Shield, Search, Database, FileText, Zap, Users, AlertTriangle, Activity, BarChart3, Camera, Download } from 'lucide-react';
+import { Eye, Shield, Search, Database, FileText, Zap, Users, AlertTriangle, Activity, BarChart3, Camera, Download, Upload, GitMerge } from 'lucide-react';
 import type { SearchParams, QAReport } from '@/types/divyadrishti';
 
 export function DivyadrishtiDashboard() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [crossDbResults, setCrossDbResults] = useState<CrossDatabaseResult | null>(null);
   const [qaReport, setQAReport] = useState<QAReport | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [currentSearchParams, setCurrentSearchParams] = useState<SearchParams | null>(null);
@@ -26,15 +29,22 @@ export function DivyadrishtiDashboard() {
     setIsSearching(true);
     setCurrentSearchParams(params);
     try {
-      console.log('Starting search with params:', params);
-      const results = await performIdentitySearch(params);
-      console.log('Search results:', results);
-      setSearchResults(results);
+      console.log('Starting cross-database search with params:', params);
+      
+      // Perform cross-database search
+      const crossDbResult = await performCrossDatabaseSearch(params);
+      setCrossDbResults(crossDbResult);
+      
+      // Extract all matches for legacy compatibility
+      const allMatches = Object.values(crossDbResult.databaseResults).flatMap(db => db.matches);
+      setSearchResults(allMatches);
 
-      if (results.length > 0) {
-        const report = generateQAReport(results, params);
+      if (allMatches.length > 0) {
+        const report = generateQAReport(allMatches, params);
         setQAReport(report);
       }
+      
+      console.log('Cross-database search completed:', crossDbResult);
     } catch (error) {
       console.error('Search error:', error);
     } finally {
@@ -63,17 +73,17 @@ export function DivyadrishtiDashboard() {
       gradient: 'from-blue-500 to-cyan-500'
     },
     { 
+      title: 'Cross-DB Matches', 
+      value: crossDbResults?.correlatedMatches.length || '0', 
+      icon: GitMerge, 
+      change: crossDbResults ? '+100%' : '0%',
+      gradient: 'from-green-500 to-emerald-500'
+    },
+    { 
       title: 'Accuracy Rate', 
       value: '98.7%', 
       icon: Shield, 
       change: '+0.3%',
-      gradient: 'from-green-500 to-emerald-500'
-    },
-    { 
-      title: 'Processing Speed', 
-      value: '0.8s', 
-      icon: Zap, 
-      change: '-15%',
       gradient: 'from-orange-500 to-red-500'
     },
   ];
@@ -91,7 +101,7 @@ export function DivyadrishtiDashboard() {
             <Shield className="h-12 w-12 text-cyan-400" />
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Advanced Identity Intelligence System with Multi-Database Cross-Verification
+            Advanced Cross-Database Identity Intelligence System with Multi-Government Integration
           </p>
           <div className="flex items-center justify-center gap-2">
             <Badge variant="secondary" className="glass text-purple-300 border-purple-500/30">
@@ -103,8 +113,8 @@ export function DivyadrishtiDashboard() {
               Multi-Agency Access
             </Badge>
             <Badge variant="outline" className="border-green-500/30 text-green-300">
-              <Activity className="h-3 w-3 mr-1" />
-              Real-Time Monitoring
+              <GitMerge className="h-3 w-3 mr-1" />
+              Cross-Database Correlation
             </Badge>
           </div>
         </div>
@@ -133,10 +143,18 @@ export function DivyadrishtiDashboard() {
 
         {/* Main Tabs Interface */}
         <Tabs defaultValue="search" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-slate-800/50">
+          <TabsList className="grid w-full grid-cols-7 bg-slate-800/50">
             <TabsTrigger value="search" className="flex items-center gap-2">
               <Search className="h-4 w-4" />
               Search
+            </TabsTrigger>
+            <TabsTrigger value="import" className="flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Import
+            </TabsTrigger>
+            <TabsTrigger value="unified" className="flex items-center gap-2">
+              <GitMerge className="h-4 w-4" />
+              Unified
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
@@ -162,7 +180,7 @@ export function DivyadrishtiDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Search className="h-6 w-6 text-purple-400" />
-                  Identity Search & Analysis
+                  Cross-Database Identity Search & Analysis
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -177,7 +195,7 @@ export function DivyadrishtiDashboard() {
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="animate-spin rounded-full h-6 w-6 border-2 border-purple-500 border-t-transparent"></div>
-                      <span className="text-lg font-medium text-purple-300">Processing Multi-Database Search...</span>
+                      <span className="text-lg font-medium text-purple-300">Processing Cross-Database Search...</span>
                     </div>
                     <Progress value={75} className="h-2" />
                     <p className="text-sm text-muted-foreground">
@@ -224,6 +242,16 @@ export function DivyadrishtiDashboard() {
             )}
           </TabsContent>
 
+          {/* Database Import Tab */}
+          <TabsContent value="import">
+            <DatabaseImport />
+          </TabsContent>
+
+          {/* Unified Report Tab */}
+          <TabsContent value="unified">
+            <UnifiedReportGenerator searchResult={crossDbResults} />
+          </TabsContent>
+
           {/* Analytics Tab */}
           <TabsContent value="analytics">
             <AnalyticsDashboard />
@@ -255,6 +283,11 @@ export function DivyadrishtiDashboard() {
                 <Badge variant="outline" className="text-xs">
                   {searchResults.length} active results
                 </Badge>
+                {crossDbResults && (
+                  <Badge variant="outline" className="text-xs border-purple-500/30 text-purple-300">
+                    {crossDbResults.correlatedMatches.length} cross-db correlations
+                  </Badge>
+                )}
               </div>
               <div className="text-xs text-muted-foreground">
                 Last updated: {new Date().toLocaleTimeString()}
