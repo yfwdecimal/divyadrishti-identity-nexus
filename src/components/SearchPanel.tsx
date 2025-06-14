@@ -15,11 +15,12 @@ interface SearchPanelProps {
 
 export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
   const [searchParams, setSearchParams] = useState<SearchParams>({
-    query: '',
     databases: ['indian_government'],
     includePartialMatches: true,
     confidenceThreshold: 0.8
   });
+
+  const [query, setQuery] = useState('');
 
   const databases = [
     { 
@@ -47,8 +48,8 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchParams.query.trim() && searchParams.databases.length > 0) {
-      onSearch(searchParams);
+    if (query.trim() && searchParams.databases.length > 0) {
+      onSearch({ ...searchParams, query });
     }
   };
 
@@ -74,8 +75,8 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
             id="search-query"
             type="text"
             placeholder="Enter name, ID number, or other identifier..."
-            value={searchParams.query}
-            onChange={(e) => setSearchParams(prev => ({ ...prev, query: e.target.value }))}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             className="pl-10 glass border-purple-500/30 focus:border-purple-400 focus:ring-purple-400/20"
           />
         </div>
@@ -101,7 +102,7 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
                 <div className="flex items-start gap-3">
                   <Checkbox
                     checked={searchParams.databases.includes(db.id)}
-                    onChange={() => toggleDatabase(db.id)}
+                    readOnly
                     className="mt-1"
                   />
                   <div className="flex-1 space-y-1">
@@ -157,7 +158,7 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
       <div className="flex gap-4">
         <Button
           type="submit"
-          disabled={isLoading || !searchParams.query.trim() || searchParams.databases.length === 0}
+          disabled={isLoading || !query.trim() || searchParams.databases.length === 0}
           className="flex-1"
         >
           {isLoading ? (
@@ -182,28 +183,6 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
           Upload Image
         </Button>
       </div>
-
-      <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          height: 20px;
-          width: 20px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #8b5cf6, #ec4899);
-          cursor: pointer;
-          box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
-        }
-
-        .slider::-moz-range-thumb {
-          height: 20px;
-          width: 20px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #8b5cf6, #ec4899);
-          cursor: pointer;
-          border: none;
-          box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
-        }
-      `}</style>
     </form>
   );
 }

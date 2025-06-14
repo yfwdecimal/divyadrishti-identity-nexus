@@ -2,24 +2,24 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 import { SearchPanel } from './SearchPanel';
 import { ResultsDisplay } from './ResultsDisplay';
 import { QAReportDisplay } from './QAReportDisplay';
 import { performIdentitySearch } from '@/utils/identityMatcher';
 import { generateQAReport } from '@/utils/qaReportGenerator';
 import { Eye, Shield, Search, Database, FileText, Zap, Users, AlertTriangle } from 'lucide-react';
-import type { SearchParams, IdentityMatch, QAReport } from '@/types/divyadrishti';
+import type { SearchParams, QAReport } from '@/types/divyadrishti';
 
 export function DivyadrishtiDashboard() {
-  const [searchResults, setSearchResults] = useState<IdentityMatch[]>([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [qaReport, setQAReport] = useState<QAReport | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [currentSearchParams, setCurrentSearchParams] = useState<SearchParams | null>(null);
 
   const handleSearch = async (params: SearchParams) => {
     setIsSearching(true);
+    setCurrentSearchParams(params);
     try {
       console.log('Starting search with params:', params);
       const results = await performIdentitySearch(params);
@@ -27,7 +27,7 @@ export function DivyadrishtiDashboard() {
       setSearchResults(results);
 
       if (results.length > 0) {
-        const report = generateQAReport(results);
+        const report = generateQAReport(results, params);
         setQAReport(report);
       }
     } catch (error) {
@@ -69,7 +69,7 @@ export function DivyadrishtiDashboard() {
   ];
 
   return (
-    <div className="min-h-screen animated-bg p-6">
+    <div className="min-h-screen static-bg p-6">
       <div className="mx-auto max-w-7xl space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -160,7 +160,11 @@ export function DivyadrishtiDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResultsDisplay results={searchResults} />
+                <ResultsDisplay 
+                  results={searchResults} 
+                  isSearching={isSearching}
+                  searchParams={currentSearchParams || { databases: [], includePartialMatches: false, confidenceThreshold: 0.8 }}
+                />
               </CardContent>
             </Card>
 
