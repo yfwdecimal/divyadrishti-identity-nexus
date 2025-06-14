@@ -13,8 +13,15 @@ interface SearchPanelProps {
   isLoading: boolean;
 }
 
+interface ExtendedSearchParams extends SearchParams {
+  databases: string[];
+  includePartialMatches: boolean;
+  confidenceThreshold: number;
+  query?: string;
+}
+
 export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
-  const [searchParams, setSearchParams] = useState<SearchParams>({
+  const [searchParams, setSearchParams] = useState<ExtendedSearchParams>({
     databases: ['indian_government'],
     includePartialMatches: true,
     confidenceThreshold: 0.8
@@ -49,7 +56,7 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim() && searchParams.databases.length > 0) {
-      onSearch({ ...searchParams, query });
+      onSearch({ ...searchParams, query } as SearchParams);
     }
   };
 
@@ -91,7 +98,7 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
           {databases.map((db) => (
             <Card 
               key={db.id} 
-              className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
+              className={`cursor-pointer transition-all duration-200 ${
                 searchParams.databases.includes(db.id) 
                   ? 'glass-card glow-accent border-purple-500/50' 
                   : 'glass-dark border-white/10'
@@ -102,7 +109,6 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
                 <div className="flex items-start gap-3">
                   <Checkbox
                     checked={searchParams.databases.includes(db.id)}
-                    readOnly
                     className="mt-1"
                   />
                   <div className="flex-1 space-y-1">

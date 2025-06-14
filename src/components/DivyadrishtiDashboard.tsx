@@ -73,7 +73,7 @@ export function DivyadrishtiDashboard() {
       <div className="mx-auto max-w-7xl space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-3 float">
+          <div className="flex items-center justify-center gap-3">
             <Eye className="h-12 w-12 text-purple-400 glow-accent" />
             <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
               Divyadrishti
@@ -98,7 +98,7 @@ export function DivyadrishtiDashboard() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat) => (
-            <Card key={stat.title} className="float hover:scale-105 transition-all duration-300">
+            <Card key={stat.title} className="transition-all duration-300 hover:glow-purple">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -118,7 +118,7 @@ export function DivyadrishtiDashboard() {
         </div>
 
         {/* Search Panel */}
-        <Card className="pulse-glow">
+        <Card className="glow-purple">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Search className="h-6 w-6 text-purple-400" />
@@ -132,7 +132,7 @@ export function DivyadrishtiDashboard() {
 
         {/* Search Progress */}
         {isSearching && (
-          <Card className="glass-card animate-pulse">
+          <Card className="glass-card">
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
@@ -163,7 +163,7 @@ export function DivyadrishtiDashboard() {
                 <ResultsDisplay 
                   results={searchResults} 
                   isSearching={isSearching}
-                  searchParams={currentSearchParams || { databases: [], includePartialMatches: false, confidenceThreshold: 0.8 }}
+                  searchParams={currentSearchParams || { includePartialMatches: false, confidenceThreshold: 0.8 }}
                 />
               </CardContent>
             </Card>
@@ -190,7 +190,7 @@ export function DivyadrishtiDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="h-3 w-3 bg-green-400 rounded-full animate-pulse"></div>
+                <div className="h-3 w-3 bg-green-400 rounded-full"></div>
                 <span className="text-sm text-muted-foreground">All systems operational</span>
               </div>
               <div className="text-xs text-muted-foreground">

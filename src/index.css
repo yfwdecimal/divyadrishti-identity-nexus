@@ -146,35 +146,4 @@
       radial-gradient(circle at 75% 75%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
       linear-gradient(135deg, #0f0f23, #1a0b2e, #16213e, #0f3460);
   }
-
-  /* Floating animations */
-  .float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
-  }
-
-  /* Pulse glow animation */
-  .pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite alternate;
-  }
-
-  @keyframes pulse-glow {
-    from { box-shadow: 0 0 20px rgba(147, 51, 234, 0.3); }
-    to { box-shadow: 0 0 30px rgba(147, 51, 234, 0.6), 0 0 40px rgba(147, 51, 234, 0.3); }
-  }
-
-  /* Shimmer effect for loading states */
-  .shimmer {
-    animation: shimmer 2s linear infinite;
-  }
-
-  @keyframes shimmer {
-    0% { background-position: -200px 0; }
-    100% { background-position: calc(200px + 100%) 0; }
-  }
 }
