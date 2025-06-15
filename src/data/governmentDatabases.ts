@@ -1,115 +1,41 @@
 
 import { IdentityRecord } from '@/types/divyadrishti';
 
-// Generate mock face embeddings (128-dimensional vectors)
-const generateMockEmbedding = (): number[] => {
-  return Array.from({ length: 128 }, () => Math.random() * 2 - 1);
-};
+// Real Indian Government Database (empty initially, populated via imports)
+export const indianGovernmentDatabase: IdentityRecord[] = [];
 
-// Indian Government Database - Aadhaar & Election Commission
-export const indianGovernmentDatabase: IdentityRecord[] = [
-  {
-    id: 'AADHAAR-001',
-    name: 'Raj Kumar Singh',
-    email: 'raj.kumar@gmail.com',
-    phone: '+91-9876543210',
-    location: {
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      country: 'India',
-    },
-    faceEmbedding: generateMockEmbedding(),
-    source: 'Aadhaar Database',
-    database: 'Indian Government',
-    lastUpdated: new Date('2024-01-15'),
-    metadata: {
-      aadhaarNumber: '****-****-1234',
-      voterIdNumber: 'MVR123456789',
-    },
-  },
-  {
-    id: 'VOTER-002',
-    name: 'Priya Sharma',
-    email: 'priya.sharma@outlook.com',
-    phone: '+91-9123456789',
-    location: {
-      city: 'Delhi',
-      state: 'Delhi',
-      country: 'India',
-    },
-    faceEmbedding: generateMockEmbedding(),
-    source: 'Election Commission',
-    database: 'Indian Government',
-    lastUpdated: new Date('2024-02-20'),
-    metadata: {
-      voterIdNumber: 'DLI987654321',
-      constituencyCode: 'DL-05',
-    },
-  },
-  {
-    id: 'PAN-003',
-    name: 'Amit Patel',
-    email: 'amit.patel@company.in',
-    phone: '+91-8765432109',
-    location: {
-      city: 'Ahmedabad',
-      state: 'Gujarat',
-      country: 'India',
-    },
-    faceEmbedding: generateMockEmbedding(),
-    source: 'Income Tax Department',
-    database: 'Indian Government',
-    lastUpdated: new Date('2024-03-10'),
-    metadata: {
-      panNumber: 'ABCDE1234F',
-      gstNumber: '24ABCDE1234F1Z5',
-    },
-  },
-  // Generate more records
-  ...Array.from({ length: 20 }, (_, i) => ({
-    id: `IND-${String(i + 4).padStart(3, '0')}`,
-    name: `Indian Citizen ${i + 4}`,
-    email: `citizen${i + 4}@india.gov.in`,
-    phone: `+91-${String(9000000000 + i).slice(0, 10)}`,
-    location: {
-      city: ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata'][i % 5],
-      state: ['Maharashtra', 'Delhi', 'Karnataka', 'Tamil Nadu', 'West Bengal'][i % 5],
-      country: 'India',
-    },
-    faceEmbedding: generateMockEmbedding(),
-    source: ['Aadhaar Database', 'Election Commission', 'Passport Office', 'Income Tax'][i % 4],
-    database: 'Indian Government',
-    lastUpdated: new Date(2024, Math.floor(Math.random() * 3), Math.floor(Math.random() * 28) + 1),
-  })),
-];
+// Imported records storage
+let importedRecords: IdentityRecord[] = [];
 
-// Store for dynamically imported records
-export let importedRecords: IdentityRecord[] = [];
-
-// Function to add imported records
 export const addImportedRecords = (records: IdentityRecord[]) => {
+  console.log(`Adding ${records.length} records to imported database`);
   importedRecords = [...importedRecords, ...records];
-  console.log(`Added ${records.length} imported records. Total imported: ${importedRecords.length}`);
-};
-
-// Function to clear imported records
-export const clearImportedRecords = () => {
-  importedRecords = [];
-  console.log('Cleared all imported records');
-};
-
-// Combined databases registry (only Indian now)
-export const governmentDatabases = {
-  'Indian Government': indianGovernmentDatabase,
-};
-
-export const getAllDatabases = (): IdentityRecord[] => {
-  return [
-    ...indianGovernmentDatabase,
-    ...importedRecords,
-  ];
+  console.log(`Total imported records: ${importedRecords.length}`);
 };
 
 export const getImportedRecords = (): IdentityRecord[] => {
   return importedRecords;
+};
+
+export const getAllDatabases = (): { [key: string]: IdentityRecord[] } => {
+  const databases: { [key: string]: IdentityRecord[] } = {};
+  
+  if (importedRecords.length > 0) {
+    databases['Imported Data'] = importedRecords;
+  }
+  
+  if (indianGovernmentDatabase.length > 0) {
+    databases['Indian Government'] = indianGovernmentDatabase;
+  }
+  
+  return databases;
+};
+
+export const clearImportedRecords = () => {
+  importedRecords = [];
+  console.log('Imported records cleared');
+};
+
+export const getTotalRecordCount = (): number => {
+  return indianGovernmentDatabase.length + importedRecords.length;
 };
