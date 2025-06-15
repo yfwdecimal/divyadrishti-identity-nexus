@@ -1,5 +1,5 @@
 import { IdentityRecord, SearchParams, MatchResult, ConfidenceWeights } from '@/types/divyadrishti';
-import { governmentDatabases, getAllDatabases } from '@/data/governmentDatabases';
+import { getAllDatabases } from '@/data/governmentDatabases';
 
 // Simulated face embedding comparison (replaces actual FaceNet/FAISS)
 const simulateFaceEmbeddingMatch = (searchEmbedding: number[], recordEmbedding: number[]): number => {
@@ -154,15 +154,17 @@ export const performIdentitySearch = async (
     databasesToSearch = specificDatabase;
   } else if (searchParams.selectedDatabases && searchParams.selectedDatabases.length > 0) {
     // Search only selected databases
+    const allDatabases = getAllDatabases();
     databasesToSearch = [];
     searchParams.selectedDatabases.forEach(dbName => {
-      if (governmentDatabases[dbName as keyof typeof governmentDatabases]) {
-        databasesToSearch = databasesToSearch.concat(governmentDatabases[dbName as keyof typeof governmentDatabases]);
+      if (allDatabases[dbName]) {
+        databasesToSearch = databasesToSearch.concat(allDatabases[dbName]);
       }
     });
   } else {
     // Search all databases
-    databasesToSearch = getAllDatabases();
+    const allDatabases = getAllDatabases();
+    databasesToSearch = Object.values(allDatabases).flat();
   }
   
   // Default confidence weights

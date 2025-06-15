@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,14 +9,14 @@ import type { SearchParams } from '@/types/divyadrishti';
 
 interface SearchPanelProps {
   onSearch: (params: SearchParams) => void;
-  isLoading: boolean;
+  isLoading?: boolean;
 }
 
 interface ExtendedSearchParams extends SearchParams {
   databases: string[];
 }
 
-export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
+export function SearchPanel({ onSearch, isLoading = false }: SearchPanelProps) {
   const [searchParams, setSearchParams] = useState<ExtendedSearchParams>({
     databases: ['indian_government'],
     includePartialMatches: true,

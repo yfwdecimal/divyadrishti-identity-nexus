@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +20,7 @@ export const DivyadrishtiDashboard = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [lastSearchParams, setLastSearchParams] = useState<SearchParams | null>(null);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [crossDatabaseResult, setCrossDatabaseResult] = useState<any>(null);
 
   useEffect(() => {
     requireAuth();
@@ -51,10 +51,12 @@ export const DivyadrishtiDashboard = () => {
         .flatMap(dbResult => dbResult.matches);
       
       setSearchResults(allMatches);
+      setCrossDatabaseResult(result);
       console.log(`Search completed: ${allMatches.length} total matches found`);
     } catch (error) {
       console.error('Search failed:', error);
       setSearchResults([]);
+      setCrossDatabaseResult(null);
     } finally {
       setIsSearching(false);
     }
@@ -132,7 +134,7 @@ export const DivyadrishtiDashboard = () => {
 
           <TabsContent value="search">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <SearchPanel onSearch={handleSearch} />
+              <SearchPanel onSearch={handleSearch} isLoading={isSearching} />
               <ResultsDisplay 
                 results={searchResults}
                 isSearching={isSearching}
@@ -149,7 +151,7 @@ export const DivyadrishtiDashboard = () => {
 
           <TabsContent value="reports">
             <div className="max-w-4xl mx-auto">
-              <UnifiedReportGenerator searchResults={searchResults} />
+              <UnifiedReportGenerator searchResult={crossDatabaseResult} />
             </div>
           </TabsContent>
 
