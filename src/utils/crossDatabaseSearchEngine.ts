@@ -1,6 +1,6 @@
 
 import { IdentityRecord, SearchParams, MatchResult } from '@/types/divyadrishti';
-import { getAllDatabases, governmentDatabases } from '@/data/governmentDatabases';
+import { getAllDatabases, getImportedRecords, indianGovernmentDatabase } from '@/data/governmentDatabases';
 import { performIdentitySearch } from './identityMatcher';
 
 export interface CrossDatabaseResult {
@@ -46,12 +46,23 @@ export const performCrossDatabaseSearch = async (
   const databaseResults: CrossDatabaseResult['databaseResults'] = {};
   const allMatches: MatchResult[] = [];
 
+  // Define available databases based on current data
+  const availableDatabases: { [key: string]: IdentityRecord[] } = {
+    'Indian Government': indianGovernmentDatabase,
+  };
+
+  // Add imported data if it exists
+  const importedRecords = getImportedRecords();
+  if (importedRecords.length > 0) {
+    availableDatabases['Imported Data'] = importedRecords;
+  }
+
   // Search each database
-  for (const [databaseName, records] of Object.entries(governmentDatabases)) {
+  for (const [databaseName, records] of Object.entries(availableDatabases)) {
     const dbStartTime = Date.now();
     
     try {
-      console.log(`Searching ${databaseName} database...`);
+      console.log(`Searching ${databaseName} database with ${records.length} records...`);
       
       // Perform search on this specific database
       const matches = await performIdentitySearch(searchParams, records);

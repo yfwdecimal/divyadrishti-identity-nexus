@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
-import { Upload, Search, Database, Users, Globe } from 'lucide-react';
+import { Upload, Search, Database, Users } from 'lucide-react';
 import type { SearchParams } from '@/types/divyadrishti';
 
 interface SearchPanelProps {
@@ -35,17 +35,10 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
       color: 'text-orange-400'
     },
     { 
-      id: 'us_federal', 
-      name: 'US Federal', 
-      icon: Globe,
-      description: 'FBI, DHS, SSA databases',
-      color: 'text-blue-400'
-    },
-    { 
-      id: 'uk_government', 
-      name: 'UK Government', 
+      id: 'imported_data', 
+      name: 'Imported CSV Data', 
       icon: Database,
-      description: 'HMRC, DVLA, Home Office records',
+      description: 'Recently imported CSV records',
       color: 'text-green-400'
     },
   ];
@@ -82,7 +75,7 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
           <Input
             id="search-query"
             type="text"
-            placeholder="Enter name, ID number, or other identifier..."
+            placeholder="Enter name, ID number, phone, email, or other identifier..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-10 glass border-purple-500/30 focus:border-purple-400 focus:ring-purple-400/20"
@@ -95,7 +88,7 @@ export function SearchPanel({ onSearch, isLoading }: SearchPanelProps) {
         <Label className="text-sm font-medium text-purple-300">
           Target Databases
         </Label>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {databases.map((db) => (
             <Card 
               key={db.id} 

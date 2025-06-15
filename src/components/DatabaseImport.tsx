@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Database, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Upload, Database, CheckCircle, AlertCircle, RefreshCw, FileText } from 'lucide-react';
+import { parseCSVFile, CSVParseResult } from '@/utils/csvParser';
+import { addImportedRecords } from '@/data/governmentDatabases';
 
 interface ImportProgress {
   database: string;
@@ -15,89 +16,87 @@ interface ImportProgress {
   progress: number;
   recordsProcessed: number;
   totalRecords: number;
+  errors?: string[];
 }
 
 export function DatabaseImport() {
-  const [selectedDatabase, setSelectedDatabase] = useState('');
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importProgress, setImportProgress] = useState<ImportProgress[]>([]);
   const [isImporting, setIsImporting] = useState(false);
-
-  const databases = [
-    { id: 'indian_aadhaar', name: 'Indian Aadhaar Database', format: 'CSV/JSON' },
-    { id: 'indian_pan', name: 'Indian PAN Database', format: 'XML/CSV' },
-    { id: 'indian_voter', name: 'Indian Voter ID Database', format: 'CSV' },
-    { id: 'us_ssn', name: 'US Social Security Database', format: 'JSON/CSV' },
-    { id: 'us_passport', name: 'US Passport Database', format: 'XML' },
-    { id: 'uk_ni', name: 'UK National Insurance Database', format: 'CSV' },
-    { id: 'uk_passport', name: 'UK Passport Database', format: 'JSON' },
-  ];
+  const [parseResult, setParseResult] = useState<CSVParseResult | null>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setImportFile(file);
+      setParseResult(null);
+      console.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
     }
-  };
-
-  const simulateImport = async (database: string, file: File) => {
-    const totalRecords = Math.floor(Math.random() * 10000) + 5000;
-    const importItem: ImportProgress = {
-      database,
-      status: 'importing',
-      progress: 0,
-      recordsProcessed: 0,
-      totalRecords,
-    };
-
-    setImportProgress(prev => [...prev, importItem]);
-
-    // Simulate import progress
-    for (let i = 0; i <= 100; i += 5) {
-      await new Promise(resolve => setTimeout(resolve, 200));
-      const recordsProcessed = Math.floor((i / 100) * totalRecords);
-      
-      setImportProgress(prev => 
-        prev.map(item => 
-          item.database === database 
-            ? { ...item, progress: i, recordsProcessed }
-            : item
-        )
-      );
-    }
-
-    // Mark as completed
-    setImportProgress(prev => 
-      prev.map(item => 
-        item.database === database 
-          ? { ...item, status: 'completed', progress: 100 }
-          : item
-      )
-    );
   };
 
   const handleImport = async () => {
-    if (!selectedDatabase || !importFile) return;
+    if (!importFile) return;
 
     setIsImporting(true);
-    const dbName = databases.find(db => db.id === selectedDatabase)?.name || selectedDatabase;
+    console.log('Starting import of file:', importFile.name);
     
+    const importItem: ImportProgress = {
+      database: importFile.name,
+      status: 'importing',
+      progress: 0,
+      recordsProcessed: 0,
+      totalRecords: 0,
+    };
+
+    setImportProgress([importItem]);
+
     try {
-      await simulateImport(dbName, importFile);
-      console.log(`Successfully imported ${importFile.name} to ${dbName}`);
+      // Parse CSV file
+      console.log('Parsing CSV file...');
+      const result = await parseCSVFile(importFile);
+      setParseResult(result);
+      
+      if (!result.success) {
+        throw new Error(`CSV parsing failed: ${result.errors.join(', ')}`);
+      }
+
+      // Update progress during parsing
+      for (let i = 0; i <= 100; i += 10) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        setImportProgress([{
+          ...importItem,
+          progress: i,
+          recordsProcessed: Math.floor((i / 100) * result.validRows),
+          totalRecords: result.validRows,
+        }]);
+      }
+
+      // Add records to the searchable database
+      console.log(`Adding ${result.records.length} records to database...`);
+      addImportedRecords(result.records);
+      
+      // Mark as completed
+      setImportProgress([{
+        ...importItem,
+        status: 'completed',
+        progress: 100,
+        recordsProcessed: result.validRows,
+        totalRecords: result.validRows,
+        errors: result.errors,
+      }]);
+
+      console.log(`Successfully imported ${result.validRows} records from ${importFile.name}`);
+      
     } catch (error) {
       console.error('Import failed:', error);
-      setImportProgress(prev => 
-        prev.map(item => 
-          item.database === dbName 
-            ? { ...item, status: 'error' }
-            : item
-        )
-      );
+      setImportProgress([{
+        ...importItem,
+        status: 'error',
+        progress: 0,
+        errors: [String(error)],
+      }]);
     } finally {
       setIsImporting(false);
-      setImportFile(null);
-      setSelectedDatabase('');
     }
   };
 
@@ -125,48 +124,85 @@ export function DatabaseImport() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Database className="h-6 w-6 text-purple-400" />
-            Government Database Import
+            Indian Government Database Import
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Select Database</Label>
-              <Select value={selectedDatabase} onValueChange={setSelectedDatabase}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose database to import" />
-                </SelectTrigger>
-                <SelectContent>
-                  {databases.map(db => (
-                    <SelectItem key={db.id} value={db.id}>
-                      {db.name} ({db.format})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Upload CSV Data File</Label>
+              <div className="space-y-2">
+                <Input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileUpload}
+                  className="cursor-pointer"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Supported format: CSV files with columns like name, email, phone, city, state, etc.
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Upload Data File</Label>
-              <Input
-                type="file"
-                accept=".csv,.json,.xml"
-                onChange={handleFileUpload}
-                className="cursor-pointer"
-              />
-            </div>
+            {importFile && (
+              <div className="p-4 bg-slate-800/50 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="h-4 w-4 text-purple-400" />
+                  <span className="font-medium">Selected File</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  <strong>Name:</strong> {importFile.name}<br />
+                  <strong>Size:</strong> {(importFile.size / 1024).toFixed(1)} KB<br />
+                  <strong>Type:</strong> {importFile.type || 'text/csv'}
+                </p>
+              </div>
+            )}
           </div>
 
           <Button 
             onClick={handleImport}
-            disabled={!selectedDatabase || !importFile || isImporting}
+            disabled={!importFile || isImporting}
             className="w-full"
           >
             <Upload className="h-4 w-4 mr-2" />
-            {isImporting ? 'Importing...' : 'Start Import'}
+            {isImporting ? 'Importing...' : 'Import CSV Data'}
           </Button>
         </CardContent>
       </Card>
+
+      {parseResult && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Parse Results</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Badge variant={parseResult.success ? "default" : "destructive"}>
+                  {parseResult.success ? "Success" : "Failed"}
+                </Badge>
+                <span className="text-sm">
+                  {parseResult.validRows} of {parseResult.totalRows} rows imported
+                </span>
+              </div>
+              
+              {parseResult.errors.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="font-medium mb-2">Errors:</h4>
+                  <div className="bg-red-900/20 border border-red-500/30 rounded p-3 max-h-32 overflow-y-auto">
+                    {parseResult.errors.slice(0, 10).map((error, index) => (
+                      <p key={index} className="text-sm text-red-300">{error}</p>
+                    ))}
+                    {parseResult.errors.length > 10 && (
+                      <p className="text-sm text-red-300">... and {parseResult.errors.length - 10} more errors</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {importProgress.length > 0 && (
         <Card>
@@ -190,6 +226,13 @@ export function DatabaseImport() {
                     </span>
                   </div>
                   <Progress value={item.progress} className="h-2" />
+                  
+                  {item.errors && item.errors.length > 0 && (
+                    <div className="text-sm text-red-300">
+                      {item.errors.slice(0, 3).join('; ')}
+                      {item.errors.length > 3 && '...'}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
