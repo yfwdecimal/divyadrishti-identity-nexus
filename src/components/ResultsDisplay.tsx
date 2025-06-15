@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MatchResult, SearchParams } from '@/types/divyadrishti';
-import { Download, User, Mail, Phone, MapPin, Calendar, Database } from 'lucide-react';
+import { Download, User, Mail, Phone, MapPin, Calendar, Database, Image } from 'lucide-react';
 
 interface ResultsDisplayProps {
   results: MatchResult[];
@@ -36,6 +35,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       tier: result.confidenceTier,
       matchedFields: result.matchedFields.join(', '),
       source: result.record.source,
+      faceImageUrl: result.record.faceImageUrl,
     }));
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { 
@@ -54,33 +54,67 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const MatchCard = ({ result }: { result: MatchResult }) => (
     <Card className="bg-slate-800/50 border-slate-700 hover:border-slate-600 transition-colors">
       <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-white">{result.record.name || 'Unknown'}</h3>
-              <p className="text-sm text-slate-400">ID: {result.record.id}</p>
-            </div>
+        <div className="flex items-start gap-4 mb-3">
+          {/* Profile Image or Avatar */}
+          <div className="flex-shrink-0">
+            {result.record.faceImageUrl ? (
+              <div className="relative">
+                <img 
+                  src={result.record.faceImageUrl} 
+                  alt={`${result.record.name || 'Unknown'} profile`}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-slate-600"
+                  onError={(e) => {
+                    // Fallback to avatar icon if image fails to load
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+                <div className="hidden w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <User className="w-8 h-8 text-white" />
+                </div>
+                {/* Face match confidence badge */}
+                {result.matchBreakdown.face && (
+                  <Badge 
+                    variant="outline" 
+                    className="absolute -bottom-1 -right-1 text-xs bg-green-600 border-green-500"
+                  >
+                    Face: {Math.round(result.matchBreakdown.face * 100)}%
+                  </Badge>
+                )}
+              </div>
+            ) : (
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <User className="w-8 h-8 text-white" />
+              </div>
+            )}
           </div>
-          <Badge 
-            variant={result.confidenceTier === 'High' ? 'default' : 'secondary'}
-            className={`
-              ${result.confidenceTier === 'High' ? 'bg-green-600' : 
-                result.confidenceTier === 'Medium' ? 'bg-yellow-600' : 'bg-red-600'}
-            `}
-          >
-            {result.confidenceTier}
-          </Badge>
-        </div>
 
-        <div className="space-y-2 mb-4">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-300">Overall Confidence</span>
-            <span className="font-mono text-white">{Math.round(result.overallConfidence * 100)}%</span>
+          {/* Person Details */}
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h3 className="font-semibold text-white">{result.record.name || 'Unknown'}</h3>
+                <p className="text-sm text-slate-400">ID: {result.record.id}</p>
+              </div>
+              <Badge 
+                variant={result.confidenceTier === 'High' ? 'default' : 'secondary'}
+                className={`
+                  ${result.confidenceTier === 'High' ? 'bg-green-600' : 
+                    result.confidenceTier === 'Medium' ? 'bg-yellow-600' : 'bg-red-600'}
+                `}
+              >
+                {result.confidenceTier}
+              </Badge>
+            </div>
+
+            <div className="space-y-2 mb-3">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-300">Overall Confidence</span>
+                <span className="font-mono text-white">{Math.round(result.overallConfidence * 100)}%</span>
+              </div>
+              <Progress value={result.overallConfidence * 100} className="h-2" />
+            </div>
           </div>
-          <Progress value={result.overallConfidence * 100} className="h-2" />
         </div>
 
         <div className="space-y-2">
@@ -121,6 +155,13 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             <Database className="w-4 h-4 text-slate-400" />
             <span className="text-slate-300">Source: {result.record.source}</span>
           </div>
+
+          {result.record.faceImageUrl && (
+            <div className="flex items-center gap-2 text-sm">
+              <Image className="w-4 h-4 text-slate-400" />
+              <span className="text-slate-300">Image Available</span>
+            </div>
+          )}
         </div>
 
         {Object.keys(result.matchBreakdown).length > 0 && (

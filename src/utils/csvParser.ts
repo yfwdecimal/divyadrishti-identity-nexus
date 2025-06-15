@@ -140,6 +140,8 @@ const createColumnMapping = (header: string[]): Record<string, number> => {
       mapping.id = index;
     } else if (normalized.includes('source') || normalized.includes('database')) {
       mapping.source = index;
+    } else if (normalized.includes('image') || normalized.includes('photo') || normalized.includes('picture') || normalized.includes('face')) {
+      mapping.image = index;
     }
   });
   
@@ -164,6 +166,7 @@ const parseRowToIdentityRecord = (
   const country = mapping.country !== undefined ? row[mapping.country]?.trim() || 'India' : 'India';
   const id = mapping.id !== undefined ? row[mapping.id]?.trim() : `IMPORTED-${Date.now()}-${rowNumber}`;
   const source = mapping.source !== undefined ? row[mapping.source]?.trim() || 'CSV Import' : 'CSV Import';
+  const imageUrl = mapping.image !== undefined ? row[mapping.image]?.trim() : '';
   
   return {
     id,
@@ -175,6 +178,7 @@ const parseRowToIdentityRecord = (
       state,
       country,
     },
+    faceImageUrl: imageUrl || undefined,
     faceEmbedding: generateMockEmbedding(),
     source,
     database: 'Imported Data',

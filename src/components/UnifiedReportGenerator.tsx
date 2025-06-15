@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CrossDatabaseResult, CorrelatedMatch } from '@/utils/crossDatabaseSearchEngine';
-import { FileText, Download, AlertTriangle, CheckCircle, Database, Users, Clock, TrendingUp } from 'lucide-react';
+import { FileText, Download, AlertTriangle, CheckCircle, Database, Users, Clock, TrendingUp, User, Image } from 'lucide-react';
 
 interface UnifiedReportProps {
   searchResult: CrossDatabaseResult | null;
@@ -90,28 +89,80 @@ export function UnifiedReportGenerator({ searchResult }: UnifiedReportProps) {
   const CorrelatedMatchCard = ({ match }: { match: CorrelatedMatch }) => (
     <Card className="bg-slate-800/50 border-slate-700">
       <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <h4 className="font-semibold text-white">{match.primaryMatch.record.name}</h4>
-            <p className="text-sm text-slate-400">Primary: {match.primaryMatch.record.database}</p>
+        <div className="flex items-start gap-4 mb-3">
+          {/* Primary Record Image */}
+          <div className="flex-shrink-0">
+            {match.primaryMatch.record.faceImageUrl ? (
+              <div className="relative">
+                <img 
+                  src={match.primaryMatch.record.faceImageUrl} 
+                  alt={`${match.primaryMatch.record.name || 'Unknown'} profile`}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-slate-600"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+                <div className="hidden w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            ) : (
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <User className="w-6 h-6 text-white" />
+              </div>
+            )}
           </div>
-          <div className="text-right">
-            <Badge variant={match.correlationType === 'exact' ? 'default' : 'secondary'}>
-              {match.correlationType}
-            </Badge>
-            <p className="text-sm text-slate-400 mt-1">
-              {Math.round(match.correlationScore * 100)}% match
-            </p>
-          </div>
-        </div>
 
-        <div className="space-y-2 mb-3">
-          <p className="text-sm text-slate-300">
-            <strong>Related Databases:</strong> {match.relatedMatches.map(m => m.record.database).join(', ')}
-          </p>
-          <p className="text-sm text-slate-300">
-            <strong>Total Records:</strong> {match.relatedMatches.length + 1}
-          </p>
+          <div className="flex-1">
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <h4 className="font-semibold text-white">{match.primaryMatch.record.name}</h4>
+                <p className="text-sm text-slate-400">Primary: {match.primaryMatch.record.database}</p>
+              </div>
+              <div className="text-right">
+                <Badge variant={match.correlationType === 'exact' ? 'default' : 'secondary'}>
+                  {match.correlationType}
+                </Badge>
+                <p className="text-sm text-slate-400 mt-1">
+                  {Math.round(match.correlationScore * 100)}% match
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 mb-3">
+              <p className="text-sm text-slate-300">
+                <strong>Related Databases:</strong> {match.relatedMatches.map(m => m.record.database).join(', ')}
+              </p>
+              <p className="text-sm text-slate-300">
+                <strong>Total Records:</strong> {match.relatedMatches.length + 1}
+              </p>
+              
+              {/* Show related images if available */}
+              {match.relatedMatches.some(m => m.record.faceImageUrl) && (
+                <div className="flex items-center gap-2">
+                  <Image className="w-4 h-4 text-slate-400" />
+                  <span className="text-sm text-slate-300">Related images available</span>
+                  <div className="flex gap-1 ml-2">
+                    {match.relatedMatches
+                      .filter(m => m.record.faceImageUrl)
+                      .slice(0, 3)
+                      .map((relatedMatch, idx) => (
+                        <img 
+                          key={idx}
+                          src={relatedMatch.record.faceImageUrl!} 
+                          alt={`Related ${idx}`}
+                          className="w-6 h-6 rounded-full object-cover border border-slate-500"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {match.discrepancies.length > 0 && (
